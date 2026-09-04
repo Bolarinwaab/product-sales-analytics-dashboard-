@@ -1,27 +1,35 @@
-/* EMMTEC SYSTEMS - POWER BI MEASURES
-   Benchmark model; replace fact table with approved company source.
+/* EMMTEC SYSTEMS — POWER BI EXECUTIVE MEASURE PACK
+   Semantic model: FactSales + DimDate + DimCustomer + DimProduct + DimGeography + DimShipping + DimDiscount.
+   Benchmark-safe: no confidential company data is embedded.
 */
 
-Total Revenue = SUM(FactSales[Sales])
+Revenue = SUM(FactSales[Sales])
 Gross Profit = SUM(FactSales[Profit])
-Profit Margin = DIVIDE([Gross Profit], [Total Revenue])
+Profit Margin = DIVIDE([Gross Profit], [Revenue])
 Units Sold = SUM(FactSales[Quantity])
-Orders = DISTINCTCOUNT(FactSales[Order ID])
-Customers = DISTINCTCOUNT(FactSales[Customer ID])
-Average Order Value = DIVIDE([Total Revenue], [Orders])
+Orders = DISTINCTCOUNT(FactSales[OrderID])
+Customers = DISTINCTCOUNT(FactSales[CustomerKey])
+Average Order Value = DIVIDE([Revenue], [Orders])
+Revenue per Customer = DIVIDE([Revenue], [Customers])
 
-Revenue PY = CALCULATE([Total Revenue], SAMEPERIODLASTYEAR('Date'[Date]))
-Revenue YoY % = DIVIDE([Total Revenue] - [Revenue PY], [Revenue PY])
-
-Profit PY = CALCULATE([Gross Profit], SAMEPERIODLASTYEAR('Date'[Date]))
+Revenue PY = CALCULATE([Revenue], SAMEPERIODLASTYEAR(DimDate[Date]))
+Revenue YoY % = DIVIDE([Revenue] - [Revenue PY], [Revenue PY])
+Profit PY = CALCULATE([Gross Profit], SAMEPERIODLASTYEAR(DimDate[Date]))
 Profit YoY % = DIVIDE([Gross Profit] - [Profit PY], [Profit PY])
-
-Units PY = CALCULATE([Units Sold], SAMEPERIODLASTYEAR('Date'[Date]))
+Units PY = CALCULATE([Units Sold], SAMEPERIODLASTYEAR(DimDate[Date]))
 Units YoY % = DIVIDE([Units Sold] - [Units PY], [Units PY])
 
-High Discount Revenue = CALCULATE([Total Revenue], FactSales[Discount Band] = "High")
-High Discount Profit = CALCULATE([Gross Profit], FactSales[Discount Band] = "High")
+Discounted Revenue = CALCULATE([Revenue], DimDiscount[DiscountBand] <> "None")
+Discounted Revenue % = DIVIDE([Discounted Revenue], [Revenue])
+High Discount Revenue = CALCULATE([Revenue], DimDiscount[DiscountBand] = "High")
+High Discount Profit = CALCULATE([Gross Profit], DimDiscount[DiscountBand] = "High")
 High Discount Margin = DIVIDE([High Discount Profit], [High Discount Revenue])
+
+Loss-Making Revenue = CALCULATE([Revenue], FactSales[Profit] < 0)
+Loss-Making Revenue % = DIVIDE([Loss-Making Revenue], [Revenue])
+Top Country = CONCATENATEX(TOPN(1, VALUES(DimGeography[Country]), [Revenue], DESC), DimGeography[Country], ", ")
+Top Product = CONCATENATEX(TOPN(1, VALUES(DimProduct[ProductName]), [Revenue], DESC), DimProduct[ProductName], ", ")
+Best Discount Band = CONCATENATEX(TOPN(1, VALUES(DimDiscount[DiscountBand]), [Profit Margin], DESC), DimDiscount[DiscountBand], ", ")
 
 Performance Status =
 SWITCH(TRUE(),
