@@ -1,0 +1,31 @@
+/* EMMTEC SYSTEMS - POWER BI MEASURES
+   Benchmark model; replace fact table with approved company source.
+*/
+
+Total Revenue = SUM(FactSales[Sales])
+Gross Profit = SUM(FactSales[Profit])
+Profit Margin = DIVIDE([Gross Profit], [Total Revenue])
+Units Sold = SUM(FactSales[Quantity])
+Orders = DISTINCTCOUNT(FactSales[Order ID])
+Customers = DISTINCTCOUNT(FactSales[Customer ID])
+Average Order Value = DIVIDE([Total Revenue], [Orders])
+
+Revenue PY = CALCULATE([Total Revenue], SAMEPERIODLASTYEAR('Date'[Date]))
+Revenue YoY % = DIVIDE([Total Revenue] - [Revenue PY], [Revenue PY])
+
+Profit PY = CALCULATE([Gross Profit], SAMEPERIODLASTYEAR('Date'[Date]))
+Profit YoY % = DIVIDE([Gross Profit] - [Profit PY], [Profit PY])
+
+Units PY = CALCULATE([Units Sold], SAMEPERIODLASTYEAR('Date'[Date]))
+Units YoY % = DIVIDE([Units Sold] - [Units PY], [Units PY])
+
+High Discount Revenue = CALCULATE([Total Revenue], FactSales[Discount Band] = "High")
+High Discount Profit = CALCULATE([Gross Profit], FactSales[Discount Band] = "High")
+High Discount Margin = DIVIDE([High Discount Profit], [High Discount Revenue])
+
+Performance Status =
+SWITCH(TRUE(),
+    [Profit Margin] < 0, "Loss",
+    [Profit Margin] < 0.10, "Margin Risk",
+    [Revenue YoY %] < 0, "Revenue Decline",
+    "Healthy")
