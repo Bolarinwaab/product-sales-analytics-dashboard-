@@ -1,0 +1,7 @@
+{
+  "name": "Emmtec Executive Analytics",
+  "dataColors": ["#173F5F", "#20639B", "#3CAEA3", "#F6D55C", "#ED553B"],
+  "background": "#F4F7FA",
+  "foreground": "#172033",
+  "tableAccent": "#20639B"
+}
